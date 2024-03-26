@@ -1,26 +1,25 @@
 #!/usr/bin/python3
-"""Module: Starts a Flask web app and fetches data from storage engine"""
+"""
+start Flask application
+"""
+
 from flask import Flask, render_template
+from models import *
 from models import storage
-from models.state import State
-
-
 app = Flask(__name__)
-
-
-@app.teardown_appcontext
-def close_session(foo):
-    """Closes session"""
-    storage.close()
 
 
 @app.route('/states_list', strict_slashes=False)
 def states_list():
-    """lists states from storage engine"""
-    states = list(storage.all(State).values())
+    """display a HTML page with the states listed in alphabetical order"""
+    states = sorted(list(storage.all("State").values()), key=lambda x: x.name)
     return render_template('7-states_list.html', states=states)
 
 
+@app.teardown_appcontext
+def teardown_db(exception):
+    """closes the storage on teardown"""
+    storage.close()
+
 if __name__ == '__main__':
-    storage.reload()
-    app.run("0.0.0.0", 5000)
+    app.run(host='0.0.0.0', port='5000')
